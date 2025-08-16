@@ -1,5 +1,5 @@
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 package com.mystudypartner.rag.controller;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

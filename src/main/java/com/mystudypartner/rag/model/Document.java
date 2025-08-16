@@ -3,6 +3,7 @@ package com.mystudypartner.rag.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mystudypartner.rag.converter.JsonMetadataConverter;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -31,31 +32,12 @@ import java.util.*;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder(toBuilder = true)
 @ToString(exclude = {"sections", "metadata"})
 @EqualsAndHashCode(of = {"id"})
+@SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "Model objects are managed by the application and not exposed to external clients")
 public class Document {
-
-    /**
-     * All-args constructor with defensive copies for mutable fields.
-     */
-    public Document(UUID id, String filename, String originalFilename, Long fileSize, String mimeType, ProcessingStatus processingStatus, LocalDateTime uploadedAt, LocalDateTime processingStartedAt, LocalDateTime processingCompletedAt, String errorMessage, Map<String, Object> metadata, LocalDateTime createdAt, LocalDateTime updatedAt, Long version, List<DocumentSection> sections) {
-        this.id = id;
-        this.filename = filename;
-        this.originalFilename = originalFilename;
-        this.fileSize = fileSize;
-        this.mimeType = mimeType;
-        this.processingStatus = processingStatus;
-        this.uploadedAt = uploadedAt;
-        this.processingStartedAt = processingStartedAt;
-        this.processingCompletedAt = processingCompletedAt;
-        this.errorMessage = errorMessage;
-        this.metadata = metadata == null ? null : new java.util.HashMap<>(metadata);
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.version = version;
-        this.sections = sections == null ? null : new java.util.ArrayList<>(sections);
-    }
     
     /**
      * Unique identifier for the document.
@@ -165,55 +147,20 @@ public class Document {
     @Builder.Default
     private List<DocumentSection> sections = new ArrayList<>();
 
-    // Lombok builder customization for defensive copy
-    public static class DocumentBuilder {
-        private List<DocumentSection> sections;
-        private Map<String, Object> metadata;
-
-        public DocumentBuilder metadata(Map<String, Object> metadata) {
-            this.metadata = metadata == null ? null : new java.util.HashMap<>(metadata);
-            return this;
-        }
-        public DocumentBuilder sections(List<DocumentSection> sections) {
-            this.sections = sections == null ? null : new java.util.ArrayList<>(sections);
-            return this;
-        }
-
-        public Document build() {
-            Document document = new Document(
-                id,
-                filename,
-                originalFilename,
-                fileSize,
-                mimeType,
-                processingStatus,
-                uploadedAt,
-                processingStartedAt,
-                processingCompletedAt,
-                errorMessage,
-                metadata == null ? null : new java.util.HashMap<>(metadata),
-                createdAt,
-                updatedAt,
-                version,
-                sections == null ? null : new java.util.ArrayList<>(sections)
-            );
-            return document;
-        }
-    }
     public Map<String, Object> getMetadata() {
-        return metadata == null ? null : new java.util.HashMap<>(metadata);
+        return metadata == null ? null : new HashMap<>(metadata);
     }
 
     public void setMetadata(Map<String, Object> metadata) {
-        this.metadata = metadata == null ? null : new java.util.HashMap<>(metadata);
+        this.metadata = metadata == null ? null : new HashMap<>(metadata);
     }
 
     public List<DocumentSection> getSections() {
-        return sections == null ? null : new java.util.ArrayList<>(sections);
+        return sections == null ? null : new ArrayList<>(sections);
     }
 
     public void setSections(List<DocumentSection> sections) {
-        this.sections = sections == null ? null : new java.util.ArrayList<>(sections);
+        this.sections = sections == null ? null : new ArrayList<>(sections);
     }
     
     /**

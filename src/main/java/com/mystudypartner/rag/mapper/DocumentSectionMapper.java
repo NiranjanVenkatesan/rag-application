@@ -45,54 +45,6 @@ public interface DocumentSectionMapper {
     DocumentSectionDto toDto(DocumentSection section);
     
     /**
-     * Map DocumentSection entity to DocumentSectionDto with hierarchy.
-     * 
-     * @param section the document section entity
-     * @param includeHierarchy whether to include hierarchy information
-     * @return the document section DTO with hierarchy
-     */
-    @Mapping(target = "documentId", source = "section.document.id")
-    @Mapping(target = "sectionTypeDescription", source = "section.sectionType.description")
-    @Mapping(target = "contentPreview", source = "section.content", qualifiedByName = "generateContentPreview")
-    @Mapping(target = "pageRange", expression = "java(generatePageRange(section.getPageStart(), section.getPageEnd()))")
-    @Mapping(target = "childCount", expression = "java(section.getChildSections() != null ? section.getChildSections().size() : 0)")
-    @Mapping(target = "isRoot", expression = "java(section.getParentSection() == null)")
-    @Mapping(target = "isLeaf", expression = "java(section.getChildSections() == null || section.getChildSections().isEmpty())")
-    @Mapping(target = "depth", expression = "java(calculateDepth(section))")
-    @Mapping(target = "fullPath", expression = "java(generateFullPath(section))")
-    @Mapping(target = "canHaveChildren", source = "section.sectionType", qualifiedByName = "canHaveChildren")
-    @Mapping(target = "isContent", source = "section.sectionType", qualifiedByName = "isContent")
-    @Mapping(target = "childSections", expression = "java(includeHierarchy && section.getChildSections() != null ? toDtoList(section.getChildSections()) : null)")
-    @Mapping(target = "ancestors", expression = "java(includeHierarchy && section.getAncestors() != null ? toDtoList(section.getAncestors()) : null)")
-    @Mapping(target = "siblings", expression = "java(includeHierarchy && section.getSiblings() != null ? toDtoList(section.getSiblings()) : null)")
-    DocumentSectionDto toDtoWithHierarchy(DocumentSection section, boolean includeHierarchy);
-    
-    /**
-     * Map DocumentSection entity to DocumentSectionDto with options.
-     * 
-     * @param section the document section entity
-     * @param includeHierarchy whether to include hierarchy information
-     * @param includeContent whether to include full content
-     * @return the document section DTO with options
-     */
-    @Mapping(target = "documentId", source = "section.document.id")
-    @Mapping(target = "sectionTypeDescription", source = "section.sectionType.description")
-    @Mapping(target = "contentPreview", source = "section.content", qualifiedByName = "generateContentPreview")
-    @Mapping(target = "content", expression = "java(includeContent ? section.getContent() : null)")
-    @Mapping(target = "pageRange", expression = "java(generatePageRange(section.getPageStart(), section.getPageEnd()))")
-    @Mapping(target = "childCount", expression = "java(section.getChildSections() != null ? section.getChildSections().size() : 0)")
-    @Mapping(target = "isRoot", expression = "java(section.getParentSection() == null)")
-    @Mapping(target = "isLeaf", expression = "java(section.getChildSections() == null || section.getChildSections().isEmpty())")
-    @Mapping(target = "depth", expression = "java(calculateDepth(section))")
-    @Mapping(target = "fullPath", expression = "java(generateFullPath(section))")
-    @Mapping(target = "canHaveChildren", source = "section.sectionType", qualifiedByName = "canHaveChildren")
-    @Mapping(target = "isContent", source = "section.sectionType", qualifiedByName = "isContent")
-    @Mapping(target = "childSections", expression = "java(includeHierarchy && section.getChildSections() != null ? toDtoList(section.getChildSections()) : null)")
-    @Mapping(target = "ancestors", expression = "java(includeHierarchy && section.getAncestors() != null ? toDtoList(section.getAncestors()) : null)")
-    @Mapping(target = "siblings", expression = "java(includeHierarchy && section.getSiblings() != null ? toDtoList(section.getSiblings()) : null)")
-    DocumentSectionDto toDtoWithOptions(DocumentSection section, boolean includeHierarchy, boolean includeContent);
-    
-    /**
      * Map DocumentSectionDto to DocumentSection entity.
      * 
      * @param sectionDto the document section DTO
@@ -122,37 +74,38 @@ public interface DocumentSectionMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "version", ignore = true)
     DocumentSection updateEntityFromDto(DocumentSectionDto sectionDto, @MappingTarget DocumentSection section);
-    
-    /**
-     * Map list of DocumentSection entities to list of DocumentSectionDto.
-     * 
-     * @param sections the list of document section entities
-     * @return the list of document section DTOs
-     */
-    default List<DocumentSectionDto> toDtoList(List<DocumentSection> sections) {
-        if (sections == null) return new java.util.ArrayList<>();
-        List<DocumentSectionDto> result = new java.util.ArrayList<>();
-        for (DocumentSection section : sections) {
-            result.add(toDto(section));
+
+    default DocumentSectionDto toDtoWithHierarchy(DocumentSection section, boolean includeHierarchy) {
+        if (section == null) {
+            return null;
         }
-        return result;
+        DocumentSectionDto dto = toDto(section);
+        if (includeHierarchy) {
+            dto.setChildSections(toDtoList(section.getChildSections()));
+            dto.setAncestors(toDtoList(section.getAncestors()));
+            dto.setSiblings(toDtoList(section.getSiblings()));
+        }
+        return dto;
     }
-    
-    /**
-     * Map list of DocumentSection entities to list of DocumentSectionDto with options.
-     * 
-     * @param sections the list of document section entities
-     * @param includeHierarchy whether to include hierarchy information
-     * @param includeContent whether to include full content
-     * @return the list of document section DTOs with options
-     */
-    default List<DocumentSectionDto> toDtoListWithOptions(List<DocumentSection> sections, boolean includeHierarchy, boolean includeContent) {
-        if (sections == null) return new java.util.ArrayList<>();
-        List<DocumentSectionDto> result = new java.util.ArrayList<>();
-        for (DocumentSection section : sections) {
-            result.add(toDtoWithOptions(section, includeHierarchy, includeContent));
+
+    default DocumentSectionDto toDtoWithOptions(DocumentSection section, boolean includeHierarchy, boolean includeContent) {
+        if (section == null) {
+            return null;
         }
-        return result;
+        DocumentSectionDto dto = toDtoWithHierarchy(section, includeHierarchy);
+        if (includeContent) {
+            dto.setContent(section.getContent());
+        } else {
+            dto.setContent(null);
+        }
+        return dto;
+    }
+
+    default List<DocumentSectionDto> toDtoList(List<DocumentSection> sections) {
+        if (sections == null) {
+            return new java.util.ArrayList<>();
+        }
+        return sections.stream().map(this::toDto).toList();
     }
     
     /**

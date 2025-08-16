@@ -11,7 +11,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -329,4 +331,22 @@ public interface DocumentRepository extends JpaRepository<Document, UUID> {
      */
     @Query("SELECT DATE(d.uploadedAt), COUNT(d) FROM Document d WHERE d.uploadedAt BETWEEN :startDate AND :endDate GROUP BY DATE(d.uploadedAt) ORDER BY DATE(d.uploadedAt)")
     List<Object[]> getUploadStatisticsByDate(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    /**
+     * Get a map of processing statistics.
+     *
+     * @return map containing processing statistics
+     */
+    default Map<String, Object> getProcessingStatisticsMap() {
+        Map<String, Object> statistics = new HashMap<>();
+
+        statistics.put("totalDocuments", count());
+        statistics.put("pendingDocuments", countByProcessingStatus(ProcessingStatus.PENDING));
+        statistics.put("processingDocuments", countByProcessingStatus(ProcessingStatus.PROCESSING));
+        statistics.put("completedDocuments", countByProcessingStatus(ProcessingStatus.COMPLETED));
+        statistics.put("failedDocuments", countByProcessingStatus(ProcessingStatus.FAILED));
+        statistics.put("cancelledDocuments", countByProcessingStatus(ProcessingStatus.CANCELLED));
+
+        return statistics;
+    }
 }

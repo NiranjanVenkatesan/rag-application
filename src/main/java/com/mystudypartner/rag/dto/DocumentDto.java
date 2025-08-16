@@ -5,15 +5,18 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mystudypartner.rag.model.Document;
 import com.mystudypartner.rag.model.ProcessingStatus;
-import lombok.AllArgsConstructor;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Data Transfer Object for Document entity.
@@ -25,8 +28,8 @@ import java.util.UUID;
 @Data
 @Builder(toBuilder = true)
 @NoArgsConstructor
-@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "DTOs are short-lived and used for serialization")
 public class DocumentDto {
     
     /**
@@ -178,31 +181,47 @@ public class DocumentDto {
     @JsonProperty("sections")
     private List<DocumentSectionDto> sections;
 
-    // Lombok builder customization for defensive copy
-    public static class DocumentDtoBuilder {
-        public DocumentDtoBuilder metadata(Map<String, Object> metadata) {
-            this.metadata = metadata == null ? null : new java.util.HashMap<>(metadata);
-            return this;
-        }
-        public DocumentDtoBuilder sections(List<DocumentSectionDto> sections) {
-            this.sections = sections == null ? null : new java.util.ArrayList<>(sections);
-            return this;
-        }
-    }
     public Map<String, Object> getMetadata() {
-        return metadata == null ? null : new java.util.HashMap<>(metadata);
+        return metadata == null ? null : new HashMap<>(metadata);
     }
 
     public void setMetadata(Map<String, Object> metadata) {
-        this.metadata = metadata == null ? null : new java.util.HashMap<>(metadata);
+        this.metadata = metadata == null ? null : new HashMap<>(metadata);
     }
 
     public List<DocumentSectionDto> getSections() {
-        return sections == null ? null : new java.util.ArrayList<>(sections);
+        return sections == null ? null : new ArrayList<>(sections);
     }
 
     public void setSections(List<DocumentSectionDto> sections) {
-        this.sections = sections == null ? null : new java.util.ArrayList<>(sections);
+        this.sections = sections == null ? null : new ArrayList<>(sections);
+    }
+
+    public DocumentDto(UUID id, String filename, String originalFilename, Long fileSize, String fileSizeFormatted, String mimeType, ProcessingStatus processingStatus, String processingStatusDescription, LocalDateTime uploadedAt, LocalDateTime processingStartedAt, LocalDateTime processingCompletedAt, String errorMessage, Map<String, Object> metadata, LocalDateTime createdAt, LocalDateTime updatedAt, Long version, Integer sectionCount, Long totalWordCount, Long totalCharCount, Long processingDurationMs, String processingDurationFormatted, Boolean isProcessingComplete, Boolean isProcessingSuccessful, List<DocumentSectionDto> sections) {
+        this.id = id;
+        this.filename = filename;
+        this.originalFilename = originalFilename;
+        this.fileSize = fileSize;
+        this.fileSizeFormatted = fileSizeFormatted;
+        this.mimeType = mimeType;
+        this.processingStatus = processingStatus;
+        this.processingStatusDescription = processingStatusDescription;
+        this.uploadedAt = uploadedAt;
+        this.processingStartedAt = processingStartedAt;
+        this.processingCompletedAt = processingCompletedAt;
+        this.errorMessage = errorMessage;
+        this.setMetadata(metadata);
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.version = version;
+        this.sectionCount = sectionCount;
+        this.totalWordCount = totalWordCount;
+        this.totalCharCount = totalCharCount;
+        this.processingDurationMs = processingDurationMs;
+        this.processingDurationFormatted = processingDurationFormatted;
+        this.isProcessingComplete = isProcessingComplete;
+        this.isProcessingSuccessful = isProcessingSuccessful;
+        this.setSections(sections);
     }
     
     /**
@@ -224,7 +243,7 @@ public class DocumentDto {
         this.processingStartedAt = document.getProcessingStartedAt();
         this.processingCompletedAt = document.getProcessingCompletedAt();
         this.errorMessage = document.getErrorMessage();
-        this.metadata = document.getMetadata();
+        this.setMetadata(document.getMetadata());
         this.createdAt = document.getCreatedAt();
         this.updatedAt = document.getUpdatedAt();
         this.version = document.getVersion();
@@ -246,9 +265,9 @@ public class DocumentDto {
     public DocumentDto(Document document, boolean includeSections) {
         this(document);
         if (includeSections && document.getSections() != null) {
-            this.sections = document.getSections().stream()
+            this.setSections(document.getSections().stream()
                     .map(DocumentSectionDto::new)
-                    .toList();
+                    .collect(Collectors.toList()));
         }
     }
     

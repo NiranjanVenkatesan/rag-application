@@ -68,7 +68,7 @@ public class DocumentSectionServiceImpl implements DocumentSectionService {
         
         // Convert to page manually since the repository method returns a List
         int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), sectionList.size());
+        int end = Math.min(start + pageable.getPageSize(), sectionList.size());
         
         List<DocumentSectionDto> sectionDtos = sectionList.subList(start, end)
                 .stream()

@@ -10,11 +10,8 @@ import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.pdf.PDFParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import jakarta.annotation.PostConstruct;
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Configuration class for Apache Tika components.
@@ -138,11 +135,10 @@ public class TikaConfiguration {
     public void validateTikaConfiguration() {
         try {
             Tika tika = tika();
-            Detector detector = detector();
             
             // Test with a simple text string
             String testText = "Hello, this is a test document.";
-            String detectedType = tika.detect(testText.getBytes());
+            String detectedType = tika.detect(testText.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             
             log.info("Tika configuration validated successfully. Detected type for test text: {}", detectedType);
             

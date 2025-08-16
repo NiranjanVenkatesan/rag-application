@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -32,34 +33,12 @@ import java.util.*;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder(toBuilder = true)
 @ToString(exclude = {"document", "parentSection", "childSections", "content"})
 @EqualsAndHashCode(of = {"id"})
+@SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "Model objects are managed by the application and not exposed to external clients")
 public class DocumentSection {
-
-    /**
-     * All-args constructor with defensive copies for mutable fields.
-     */
-    public DocumentSection(UUID id, Document document, SectionType sectionType, String title, String content, String hierarchyPath, Integer hierarchyLevel, Integer pageStart, Integer pageEnd, Long wordCount, Long charCount, Integer sectionOrder, DocumentSection parentSection, List<DocumentSection> childSections, String weaviateId, LocalDateTime createdAt, LocalDateTime updatedAt, Long version) {
-        this.id = id;
-        this.document = document;
-        this.sectionType = sectionType;
-        this.title = title;
-        this.content = content;
-        this.hierarchyPath = hierarchyPath;
-        this.hierarchyLevel = hierarchyLevel;
-        this.pageStart = pageStart;
-        this.pageEnd = pageEnd;
-        this.wordCount = wordCount;
-        this.charCount = charCount;
-        this.sectionOrder = sectionOrder;
-        this.parentSection = parentSection;
-        this.childSections = childSections == null ? null : new java.util.ArrayList<>(childSections);
-        this.weaviateId = weaviateId;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.version = version;
-    }
     
     /**
      * Unique identifier for the section.
@@ -77,6 +56,8 @@ public class DocumentSection {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "document_id", nullable = false, foreignKey = @ForeignKey(name = "fk_document_sections_document"))
     @JsonIgnore
+    @Getter(onMethod_ = @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "JPA entity relationship"))
+    @Setter(onMethod_ = @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "JPA entity relationship"))
     private Document document;
     
     /**
@@ -154,6 +135,8 @@ public class DocumentSection {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_section_id", foreignKey = @ForeignKey(name = "fk_document_sections_parent"))
     @JsonIgnore
+    @Getter(onMethod_ = @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "JPA entity relationship"))
+    @Setter(onMethod_ = @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "JPA entity relationship"))
     private DocumentSection parentSection;
     
     /**
@@ -165,44 +148,12 @@ public class DocumentSection {
     @Builder.Default
     private List<DocumentSection> childSections = new ArrayList<>();
 
-    // Lombok builder customization for defensive copy
-    public static class DocumentSectionBuilder {
-        private List<DocumentSection> childSections;
-
-        public DocumentSectionBuilder childSections(List<DocumentSection> childSections) {
-            this.childSections = childSections == null ? null : new java.util.ArrayList<>(childSections);
-            return this;
-        }
-
-        public DocumentSection build() {
-            return new DocumentSection(
-                id,
-                document,
-                sectionType,
-                title,
-                content,
-                hierarchyPath,
-                hierarchyLevel,
-                pageStart,
-                pageEnd,
-                wordCount,
-                charCount,
-                sectionOrder,
-                parentSection,
-                childSections == null ? null : new java.util.ArrayList<>(childSections),
-                weaviateId,
-                createdAt,
-                updatedAt,
-                version
-            );
-        }
-    }
     public List<DocumentSection> getChildSections() {
-        return childSections == null ? null : new java.util.ArrayList<>(childSections);
+        return childSections == null ? null : new ArrayList<>(childSections);
     }
 
     public void setChildSections(List<DocumentSection> childSections) {
-        this.childSections = childSections == null ? null : new java.util.ArrayList<>(childSections);
+        this.childSections = childSections == null ? null : new ArrayList<>(childSections);
     }
     
     /**

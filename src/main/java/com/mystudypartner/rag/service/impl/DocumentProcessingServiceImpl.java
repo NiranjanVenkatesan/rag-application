@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Files;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -69,7 +70,7 @@ public class DocumentProcessingServiceImpl implements DocumentProcessingService 
         log.info("Starting sync document processing for document: {}", documentId);
         
         try {
-            Document document = updateProcessingStatus(documentId, ProcessingStatus.PROCESSING, null);
+            updateProcessingStatus(documentId, ProcessingStatus.PROCESSING, null);
             
             String extractedText = extractTextFromDocument(documentId);
             log.debug("Extracted {} characters from document: {}", extractedText.length(), documentId);
@@ -77,7 +78,7 @@ public class DocumentProcessingServiceImpl implements DocumentProcessingService 
             int sectionsCreated = createDocumentSections(documentId, extractedText);
             log.info("Created {} sections for document: {}", sectionsCreated, documentId);
             
-            document = updateProcessingStatus(documentId, ProcessingStatus.COMPLETED, null);
+            Document document = updateProcessingStatus(documentId, ProcessingStatus.COMPLETED, null);
             
             log.info("Document processing completed successfully for document: {}", documentId);
             return document;
@@ -116,7 +117,7 @@ public class DocumentProcessingServiceImpl implements DocumentProcessingService 
             log.debug("Successfully extracted {} characters from document: {}", extractedText.length(), documentId);
             return extractedText.trim();
             
-        } catch (Exception e) {
+        } catch (IOException | org.apache.tika.exception.TikaException e) {
             log.error("Error extracting text from document: {}", documentId, e);
             throw new DocumentProcessingException(documentId, "TEXT_EXTRACTION_ERROR", 
                     "Failed to extract text from document: " + e.getMessage(), e);
@@ -133,19 +134,18 @@ public class DocumentProcessingServiceImpl implements DocumentProcessingService 
         int hierarchicalSections = detectAndCreateHierarchy(documentId, extractedText);
         
         if (hierarchicalSections == 0) {
-            DocumentSection contentSection = DocumentSection.builder()
-                    .document(document)
-                    .sectionType(SectionType.CONTENT)
-                    .title("Document Content")
-                    .content(extractedText)
-                    .hierarchyPath("1")
-                    .hierarchyLevel(0)
-                    .sectionOrder(1)
-                    .wordCount(countWords(extractedText))
-                    .charCount((long) extractedText.length())
-                    .pageStart(1)
-                    .pageEnd(1)
-                    .build();
+            DocumentSection contentSection = new DocumentSection();
+            contentSection.setDocument(document);
+            contentSection.setSectionType(SectionType.CONTENT);
+            contentSection.setTitle("Document Content");
+            contentSection.setContent(extractedText);
+            contentSection.setHierarchyPath("1");
+            contentSection.setHierarchyLevel(0);
+            contentSection.setSectionOrder(1);
+            contentSection.setWordCount(countWords(extractedText));
+            contentSection.setCharCount((long) extractedText.length());
+            contentSection.setPageStart(1);
+            contentSection.setPageEnd(1);
             
             documentSectionRepository.save(contentSection);
             log.debug("Created single content section for document: {}", documentId);
@@ -191,16 +191,15 @@ public class DocumentProcessingServiceImpl implements DocumentProcessingService 
                 chapterNumber++;
                 sectionNumber = 0;
                 
-                currentChapter = DocumentSection.builder()
-                        .document(document)
-                        .sectionType(SectionType.CHAPTER)
-                        .title("Chapter " + chapterMatcher.group(1) + ": " + chapterMatcher.group(2).trim())
-                        .hierarchyPath(String.valueOf(chapterNumber))
-                        .hierarchyLevel(0)
-                        .sectionOrder(sectionOrder++)
-                        .pageStart(1)
-                        .pageEnd(1)
-                        .build();
+                currentChapter = new DocumentSection();
+                currentChapter.setDocument(document);
+                currentChapter.setSectionType(SectionType.CHAPTER);
+                currentChapter.setTitle("Chapter " + chapterMatcher.group(1) + ": " + chapterMatcher.group(2).trim());
+                currentChapter.setHierarchyPath(String.valueOf(chapterNumber));
+                currentChapter.setHierarchyLevel(0);
+                currentChapter.setSectionOrder(sectionOrder++);
+                currentChapter.setPageStart(1);
+                currentChapter.setPageEnd(1);
                 
                 sections.add(currentChapter);
                 currentSection = null;
@@ -220,19 +219,18 @@ public class DocumentProcessingServiceImpl implements DocumentProcessingService 
                 
                 sectionNumber++;
                 
-                currentSection = DocumentSection.builder()
-                        .document(document)
-                        .sectionType(SectionType.SECTION)
-                        .title(sectionMatcher.group(1) + ". " + sectionMatcher.group(2).trim())
-                        .parentSection(currentChapter)
-                        .hierarchyPath(currentChapter != null ? 
-                                currentChapter.getHierarchyPath() + "." + sectionNumber : 
-                                String.valueOf(sectionNumber))
-                        .hierarchyLevel(currentChapter != null ? 1 : 0)
-                        .sectionOrder(sectionOrder++)
-                        .pageStart(1)
-                        .pageEnd(1)
-                        .build();
+                currentSection = new DocumentSection();
+                currentSection.setDocument(document);
+                currentSection.setSectionType(SectionType.SECTION);
+                currentSection.setTitle(sectionMatcher.group(1) + ". " + sectionMatcher.group(2).trim());
+                currentSection.setParentSection(currentChapter);
+                currentSection.setHierarchyPath(currentChapter != null ?
+                        currentChapter.getHierarchyPath() + "." + sectionNumber :
+                        String.valueOf(sectionNumber));
+                currentSection.setHierarchyLevel(currentChapter != null ? 1 : 0);
+                currentSection.setSectionOrder(sectionOrder++);
+                currentSection.setPageStart(1);
+                currentSection.setPageEnd(1);
                 
                 sections.add(currentSection);
                 continue;
@@ -245,16 +243,15 @@ public class DocumentProcessingServiceImpl implements DocumentProcessingService 
                 }
                 currentContent.append(line);
             } else {
-                currentSection = DocumentSection.builder()
-                        .document(document)
-                        .sectionType(SectionType.CONTENT)
-                        .title("Document Content")
-                        .hierarchyPath("1")
-                        .hierarchyLevel(0)
-                        .sectionOrder(sectionOrder++)
-                        .pageStart(1)
-                        .pageEnd(1)
-                        .build();
+                currentSection = new DocumentSection();
+                currentSection.setDocument(document);
+                currentSection.setSectionType(SectionType.CONTENT);
+                currentSection.setTitle("Document Content");
+                currentSection.setHierarchyPath("1");
+                currentSection.setHierarchyLevel(0);
+                currentSection.setSectionOrder(sectionOrder++);
+                currentSection.setPageStart(1);
+                currentSection.setPageEnd(1);
                 
                 currentContent.append(line);
             }
@@ -329,14 +326,7 @@ public class DocumentProcessingServiceImpl implements DocumentProcessingService 
     public java.util.Map<String, Object> getProcessingStatistics() {
         log.debug("Fetching processing statistics");
         
-        java.util.Map<String, Object> statistics = new java.util.HashMap<>();
-        
-        statistics.put("totalDocuments", documentRepository.count());
-        statistics.put("pendingDocuments", documentRepository.countByProcessingStatus(ProcessingStatus.PENDING));
-        statistics.put("processingDocuments", documentRepository.countByProcessingStatus(ProcessingStatus.PROCESSING));
-        statistics.put("completedDocuments", documentRepository.countByProcessingStatus(ProcessingStatus.COMPLETED));
-        statistics.put("failedDocuments", documentRepository.countByProcessingStatus(ProcessingStatus.FAILED));
-        statistics.put("cancelledDocuments", documentRepository.countByProcessingStatus(ProcessingStatus.CANCELLED));
+        java.util.Map<String, Object> statistics = documentRepository.getProcessingStatisticsMap();
         statistics.put("totalSections", documentSectionRepository.count());
         
         return statistics;
@@ -345,9 +335,6 @@ public class DocumentProcessingServiceImpl implements DocumentProcessingService 
     @Override
     public void cleanupProcessingArtifacts(UUID documentId) {
         log.debug("Cleaning up processing artifacts for document: {}", documentId);
-        
-        Document document = documentRepository.findById(documentId)
-                .orElseThrow(() -> new DocumentNotFoundException(documentId));
         
         Path tempDir = Paths.get(UPLOAD_DIR, "temp", documentId.toString());
         try {
