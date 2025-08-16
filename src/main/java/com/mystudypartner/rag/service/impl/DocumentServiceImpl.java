@@ -77,14 +77,13 @@ public class DocumentServiceImpl implements DocumentService {
             Files.copy(file.getInputStream(), filePath);
             
             // Create document entity
-            Document document = Document.builder()
-                    .filename(systemFilename)
-                    .originalFilename(originalFilename)
-                    .fileSize(file.getSize())
-                    .mimeType(file.getContentType())
-                    .processingStatus(ProcessingStatus.PENDING)
-                    .uploadedAt(LocalDateTime.now())
-                    .build();
+            Document document = new Document();
+            document.setFilename(systemFilename);
+            document.setOriginalFilename(originalFilename);
+            document.setFileSize(file.getSize());
+            document.setMimeType(file.getContentType());
+            document.setProcessingStatus(ProcessingStatus.PENDING);
+            document.setUploadedAt(LocalDateTime.now());
             
             // Save document
             Document savedDocument = documentRepository.save(document);
@@ -191,16 +190,7 @@ public class DocumentServiceImpl implements DocumentService {
     public Map<String, Object> getProcessingStatistics() {
         log.debug("Fetching document processing statistics");
         
-        Map<String, Object> statistics = new java.util.HashMap<>();
-        
-        statistics.put("totalDocuments", documentRepository.count());
-        statistics.put("pendingDocuments", documentRepository.countByProcessingStatus(ProcessingStatus.PENDING));
-        statistics.put("processingDocuments", documentRepository.countByProcessingStatus(ProcessingStatus.PROCESSING));
-        statistics.put("completedDocuments", documentRepository.countByProcessingStatus(ProcessingStatus.COMPLETED));
-        statistics.put("failedDocuments", documentRepository.countByProcessingStatus(ProcessingStatus.FAILED));
-        statistics.put("cancelledDocuments", documentRepository.countByProcessingStatus(ProcessingStatus.CANCELLED));
-        
-        return statistics;
+        return documentRepository.getProcessingStatisticsMap();
     }
     
     @Override

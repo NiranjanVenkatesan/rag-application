@@ -39,7 +39,7 @@
         <spotbugs.version>4.8.3.0</spotbugs.version>
         <jacoco.version>0.8.11</jacoco.version>
         <checkstyle.version>10.12.7</checkstyle.version>
-        <pmd.version>6.55.0</pmd.version>
+        <pmd.version>7.2.0</pmd.version>
     </properties>
 
     <dependencies>
@@ -205,14 +205,14 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- FindBugs/SpotBugs Annotations for static analysis suppression -->
+        <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-annotations</artifactId>
+            <version>4.8.3</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
-    <!-- FindBugs/SpotBugs Annotations for static analysis suppression -->
-    <dependency>
-        <groupId>com.github.spotbugs</groupId>
-        <artifactId>spotbugs-annotations</artifactId>
-        <version>4.8.3</version>
-        <scope>compile</scope>
-    </dependency>
 
     <build>
         <plugins>
@@ -341,6 +341,7 @@
                     <threshold>Low</threshold>
                     <xmlOutput>true</xmlOutput>
                     <htmlOutput>true</htmlOutput>
+                    <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
                 </configuration>
                 <executions>
                     <execution>
@@ -380,7 +381,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.21.2</version>
+                <version>3.24.0</version>
                 <configuration>
                     <linkXRef>false</linkXRef>
                     <sourceEncoding>UTF-8</sourceEncoding>

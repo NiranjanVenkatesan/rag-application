@@ -1,5 +1,5 @@
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 package com.mystudypartner.rag.controller;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import com.mystudypartner.rag.dto.DocumentDto;
 import com.mystudypartner.rag.dto.DocumentSectionDto;
@@ -20,14 +20,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 

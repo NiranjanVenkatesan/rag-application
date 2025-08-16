@@ -39,21 +39,6 @@ public interface DocumentMapper {
     DocumentDto toDto(Document document);
     
     /**
-     * Map Document entity to DocumentDto with sections.
-     * 
-     * @param document the document entity
-     * @param includeSections whether to include sections
-     * @return the document DTO with sections
-     */
-    @Mapping(target = "fileSizeFormatted", source = "document.fileSize", qualifiedByName = "formatFileSize")
-    @Mapping(target = "processingStatusDescription", source = "document.processingStatus.description")
-    @Mapping(target = "processingDurationFormatted", source = "document.processingDurationMs", qualifiedByName = "formatDuration")
-    @Mapping(target = "isProcessingComplete", source = "document.processingStatus", qualifiedByName = "isProcessingComplete")
-    @Mapping(target = "isProcessingSuccessful", source = "document.processingStatus", qualifiedByName = "isProcessingSuccessful")
-    @Mapping(target = "sections", expression = "java(includeSections ? documentSectionMapper.toDtoList(document.getSections()) : null)")
-    DocumentDto toDtoWithSections(Document document, boolean includeSections);
-    
-    /**
      * Map DocumentDto to Document entity.
      * 
      * @param documentDto the document DTO
@@ -79,36 +64,16 @@ public interface DocumentMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "version", ignore = true)
     Document updateEntityFromDto(DocumentDto documentDto, @MappingTarget Document document);
-    
-    /**
-     * Map list of Document entities to list of DocumentDto.
-     * 
-     * @param documents the list of document entities
-     * @return the list of document DTOs
-     */
-    default List<DocumentDto> toDtoList(List<Document> documents) {
-        if (documents == null) return new java.util.ArrayList<>();
-        List<DocumentDto> result = new java.util.ArrayList<>();
-        for (Document doc : documents) {
-            result.add(toDto(doc));
+
+    default DocumentDto toDtoWithSections(Document document, boolean includeSections) {
+        if (document == null) {
+            return null;
         }
-        return result;
-    }
-    
-    /**
-     * Map list of Document entities to list of DocumentDto with sections.
-     * 
-     * @param documents the list of document entities
-     * @param includeSections whether to include sections
-     * @return the list of document DTOs with sections
-     */
-    default List<DocumentDto> toDtoListWithSections(List<Document> documents, boolean includeSections) {
-        if (documents == null) return new java.util.ArrayList<>();
-        List<DocumentDto> result = new java.util.ArrayList<>();
-        for (Document doc : documents) {
-            result.add(toDtoWithSections(doc, includeSections));
+        DocumentDto dto = toDto(document);
+        if (includeSections) {
+            dto.setSections(DocumentSectionMapper.INSTANCE.toDtoList(document.getSections()));
         }
-        return result;
+        return dto;
     }
     
     /**

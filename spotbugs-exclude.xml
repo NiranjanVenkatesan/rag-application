@@ -1,0 +1,7 @@
+<FindBugsFilter>
+  <!-- Suppress redundant null check warning in MapStruct-generated code -->
+  <Match>
+    <Class name="~.*\.mapper\..*Impl" />
+    <Bug code="RCN" />
+  </Match>
+</FindBugsFilter>

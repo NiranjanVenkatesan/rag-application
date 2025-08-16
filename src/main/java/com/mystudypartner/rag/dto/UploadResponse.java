@@ -3,7 +3,7 @@ package com.mystudypartner.rag.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,8 +21,8 @@ import java.util.UUID;
 @Data
 @Builder(toBuilder = true)
 @NoArgsConstructor
-@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "DTOs are short-lived and used for serialization")
 public class UploadResponse {
     
     /**
@@ -121,21 +121,6 @@ public class UploadResponse {
      */
     @JsonProperty("warnings")
     private String[] warnings;
-
-    // Lombok builder customization for defensive copy
-    public static class UploadResponseBuilder {
-        public UploadResponseBuilder warnings(String[] warnings) {
-            this.warnings = warnings == null ? null : java.util.Arrays.copyOf(warnings, warnings.length);
-            return this;
-        }
-    }
-    public String[] getWarnings() {
-        return warnings == null ? null : java.util.Arrays.copyOf(warnings, warnings.length);
-    }
-
-    public void setWarnings(String[] warnings) {
-        this.warnings = warnings == null ? null : java.util.Arrays.copyOf(warnings, warnings.length);
-    }
     
     /**
      * Additional metadata about the upload.
@@ -143,6 +128,44 @@ public class UploadResponse {
     @JsonProperty("metadata")
     private Object metadata;
     
+    /**
+     * Constructor for successful upload response.
+     *
+     * @param documentId the document ID
+     * @param originalFilename the original filename
+     * @param filename the system filename
+     * @param fileSize the file size in bytes
+     * @param mimeType the MIME type
+     * @param uploadedAt the upload timestamp
+     */
+    public UploadResponse(UUID documentId, Boolean success, String message, String originalFilename, String filename, Long fileSize, String fileSizeFormatted, String mimeType, LocalDateTime uploadedAt, String errorCode, String errorMessage, String errorDetails, String processingStatus, Long estimatedProcessingTimeMs, String estimatedProcessingTimeFormatted, String[] warnings, Object metadata) {
+        this.documentId = documentId;
+        this.success = success;
+        this.message = message;
+        this.originalFilename = originalFilename;
+        this.filename = filename;
+        this.fileSize = fileSize;
+        this.fileSizeFormatted = fileSizeFormatted;
+        this.mimeType = mimeType;
+        this.uploadedAt = uploadedAt;
+        this.errorCode = errorCode;
+        this.errorMessage = errorMessage;
+        this.errorDetails = errorDetails;
+        this.processingStatus = processingStatus;
+        this.estimatedProcessingTimeMs = estimatedProcessingTimeMs;
+        this.estimatedProcessingTimeFormatted = estimatedProcessingTimeFormatted;
+        this.setWarnings(warnings);
+        this.metadata = metadata;
+    }
+
+    public String[] getWarnings() {
+        return warnings == null ? null : warnings.clone();
+    }
+
+    public void setWarnings(String[] warnings) {
+        this.warnings = warnings == null ? null : warnings.clone();
+    }
+
     /**
      * Constructor for successful upload response.
      * 
@@ -271,7 +294,7 @@ public class UploadResponse {
      * @return this UploadResponse for chaining
      */
     public UploadResponse withWarnings(String... warnings) {
-        this.warnings = warnings;
+        this.setWarnings(warnings);
         return this;
     }
     

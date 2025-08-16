@@ -5,14 +5,16 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mystudypartner.rag.model.DocumentSection;
 import com.mystudypartner.rag.model.SectionType;
-import lombok.AllArgsConstructor;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Data Transfer Object for DocumentSection entity.
@@ -24,8 +26,8 @@ import java.util.UUID;
 @Data
 @Builder(toBuilder = true)
 @NoArgsConstructor
-@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "DTOs are short-lived and used for serialization")
 public class DocumentSectionDto {
     
     /**
@@ -210,43 +212,61 @@ public class DocumentSectionDto {
     @JsonProperty("siblings")
     private List<DocumentSectionDto> siblings;
 
-    // Lombok builder customization for defensive copy
-    public static class DocumentSectionDtoBuilder {
-        public DocumentSectionDtoBuilder childSections(List<DocumentSectionDto> childSections) {
-            this.childSections = childSections == null ? null : new java.util.ArrayList<>(childSections);
-            return this;
-        }
-        public DocumentSectionDtoBuilder ancestors(List<DocumentSectionDto> ancestors) {
-            this.ancestors = ancestors == null ? null : new java.util.ArrayList<>(ancestors);
-            return this;
-        }
-        public DocumentSectionDtoBuilder siblings(List<DocumentSectionDto> siblings) {
-            this.siblings = siblings == null ? null : new java.util.ArrayList<>(siblings);
-            return this;
-        }
-    }
     public List<DocumentSectionDto> getChildSections() {
-        return childSections == null ? null : new java.util.ArrayList<>(childSections);
+        return childSections == null ? null : new ArrayList<>(childSections);
     }
 
     public void setChildSections(List<DocumentSectionDto> childSections) {
-        this.childSections = childSections == null ? null : new java.util.ArrayList<>(childSections);
+        this.childSections = childSections == null ? null : new ArrayList<>(childSections);
     }
 
     public List<DocumentSectionDto> getAncestors() {
-        return ancestors == null ? null : new java.util.ArrayList<>(ancestors);
+        return ancestors == null ? null : new ArrayList<>(ancestors);
     }
 
     public void setAncestors(List<DocumentSectionDto> ancestors) {
-        this.ancestors = ancestors == null ? null : new java.util.ArrayList<>(ancestors);
+        this.ancestors = ancestors == null ? null : new ArrayList<>(ancestors);
     }
 
     public List<DocumentSectionDto> getSiblings() {
-        return siblings == null ? null : new java.util.ArrayList<>(siblings);
+        return siblings == null ? null : new ArrayList<>(siblings);
     }
 
     public void setSiblings(List<DocumentSectionDto> siblings) {
-        this.siblings = siblings == null ? null : new java.util.ArrayList<>(siblings);
+        this.siblings = siblings == null ? null : new ArrayList<>(siblings);
+    }
+
+    public DocumentSectionDto(UUID id, UUID documentId, SectionType sectionType, String sectionTypeDescription, String title, String content, String contentPreview, String hierarchyPath, Integer hierarchyLevel, Integer pageStart, Integer pageEnd, String pageRange, Long wordCount, Long charCount, Integer sectionOrder, UUID parentSectionId, String weaviateId, LocalDateTime createdAt, LocalDateTime updatedAt, Long version, Integer childCount, Boolean isRoot, Boolean isLeaf, Integer depth, String fullPath, Boolean canHaveChildren, Boolean isContent, List<DocumentSectionDto> childSections, List<DocumentSectionDto> ancestors, List<DocumentSectionDto> siblings) {
+        this.id = id;
+        this.documentId = documentId;
+        this.sectionType = sectionType;
+        this.sectionTypeDescription = sectionTypeDescription;
+        this.title = title;
+        this.content = content;
+        this.contentPreview = contentPreview;
+        this.hierarchyPath = hierarchyPath;
+        this.hierarchyLevel = hierarchyLevel;
+        this.pageStart = pageStart;
+        this.pageEnd = pageEnd;
+        this.pageRange = pageRange;
+        this.wordCount = wordCount;
+        this.charCount = charCount;
+        this.sectionOrder = sectionOrder;
+        this.parentSectionId = parentSectionId;
+        this.weaviateId = weaviateId;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.version = version;
+        this.childCount = childCount;
+        this.isRoot = isRoot;
+        this.isLeaf = isLeaf;
+        this.depth = depth;
+        this.fullPath = fullPath;
+        this.canHaveChildren = canHaveChildren;
+        this.isContent = isContent;
+        this.setChildSections(childSections);
+        this.setAncestors(ancestors);
+        this.setSiblings(siblings);
     }
     
     /**
@@ -294,21 +314,15 @@ public class DocumentSectionDto {
     public DocumentSectionDto(DocumentSection section, boolean includeHierarchy) {
         this(section);
         if (includeHierarchy) {
-            if (section.getChildSections() != null) {
-                this.childSections = section.getChildSections().stream()
-                        .map(child -> new DocumentSectionDto(child, false))
-                        .toList();
-            }
-            if (section.getAncestors() != null) {
-                this.ancestors = section.getAncestors().stream()
-                        .map(ancestor -> new DocumentSectionDto(ancestor, false))
-                        .toList();
-            }
-            if (section.getSiblings() != null) {
-                this.siblings = section.getSiblings().stream()
-                        .map(sibling -> new DocumentSectionDto(sibling, false))
-                        .toList();
-            }
+            this.setChildSections(section.getChildSections().stream()
+                    .map(child -> new DocumentSectionDto(child, false))
+                    .collect(Collectors.toList()));
+            this.setAncestors(section.getAncestors().stream()
+                    .map(ancestor -> new DocumentSectionDto(ancestor, false))
+                    .collect(Collectors.toList()));
+            this.setSiblings(section.getSiblings().stream()
+                    .map(sibling -> new DocumentSectionDto(sibling, false))
+                    .collect(Collectors.toList()));
         }
     }
     

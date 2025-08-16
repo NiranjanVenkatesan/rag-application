@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -167,7 +168,7 @@ public final class FileUtils {
         
         int lastDotIndex = filename.lastIndexOf('.');
         if (lastDotIndex > 0 && lastDotIndex < filename.length() - 1) {
-            return filename.substring(lastDotIndex + 1).toLowerCase();
+            return filename.substring(lastDotIndex + 1).toLowerCase(Locale.ROOT);
         }
         
         return null;
