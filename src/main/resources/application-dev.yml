@@ -1,0 +1,212 @@
+# Development Profile Configuration
+# This profile is automatically activated in development environment
+
+spring:
+  # Development Database Configuration
+  datasource:
+    url: jdbc:postgresql://postgres:5432/ragdb
+    username: postgres
+    password: password
+    hikari:
+      maximum-pool-size: ${DB_MAX_POOL_SIZE:10}
+      minimum-idle: ${DB_MIN_IDLE:2}
+      connection-timeout: ${DB_CONNECTION_TIMEOUT:20000}
+      idle-timeout: ${DB_IDLE_TIMEOUT:300000}
+      max-lifetime: ${DB_MAX_LIFETIME:900000}
+      leak-detection-threshold: ${DB_LEAK_DETECTION_THRESHOLD:30000}
+  
+  # Development JPA/Hibernate Configuration
+  jpa:
+    hibernate:
+      ddl-auto: ${HIBERNATE_DDL_AUTO:create-drop}
+    properties:
+      hibernate:
+        format_sql: ${HIBERNATE_FORMAT_SQL:true}
+        show_sql: ${HIBERNATE_SHOW_SQL:true}
+        use_sql_comments: ${HIBERNATE_USE_SQL_COMMENTS:true}
+        jdbc:
+          batch_size: ${HIBERNATE_BATCH_SIZE:10}
+          fetch_size: ${HIBERNATE_FETCH_SIZE:25}
+        cache:
+          use_second_level_cache: ${HIBERNATE_USE_CACHE:false}
+          use_query_cache: ${HIBERNATE_USE_QUERY_CACHE:false}
+    open-in-view: true
+  
+  # Development Flyway Configuration
+  flyway:
+    enabled: false
+    clean-disabled: true
+    baseline-on-migrate: false
+    validate-on-migrate: false
+  
+  # Development File Upload Configuration
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:50MB}
+      max-request-size: ${MAX_REQUEST_SIZE:50MB}
+      file-size-threshold: ${FILE_SIZE_THRESHOLD:1KB}
+  
+  # Development JSON Configuration
+  jackson:
+    serialization:
+      indent-output: ${JACKSON_INDENT_OUTPUT:true}
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+    time-zone: ${JACKSON_TIMEZONE:UTC}
+  
+  # Development Security Configuration
+  security:
+    user:
+      name: ${SECURITY_USER_NAME:dev}
+      password: ${SECURITY_USER_PASSWORD:dev123}
+  
+  # Development Cache Configuration
+  cache:
+    type: ${CACHE_TYPE:simple}
+    cache-names:
+      - document-cache
+      - search-cache
+      - user-cache
+
+# Development Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: ${SERVER_CONTEXT_PATH:/api}
+  compression:
+    enabled: ${SERVER_COMPRESSION_ENABLED:false}
+  error:
+    include-message: ${SERVER_ERROR_INCLUDE_MESSAGE:always}
+    include-binding-errors: ${SERVER_ERROR_INCLUDE_BINDING_ERRORS:always}
+    include-stacktrace: ${SERVER_ERROR_INCLUDE_STACKTRACE:always}
+
+# Development Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ${ACTUATOR_ENDPOINTS:health,info,metrics,prometheus,env,configprops,beans,mappings}
+      base-path: ${ACTUATOR_BASE_PATH:/actuator}
+  endpoint:
+    health:
+      show-details: ${ACTUATOR_HEALTH_SHOW_DETAILS:always}
+      show-components: ${ACTUATOR_HEALTH_SHOW_COMPONENTS:always}
+    info:
+      enabled: true
+    metrics:
+      enabled: true
+    env:
+      enabled: true
+    configprops:
+      enabled: true
+    beans:
+      enabled: true
+    mappings:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: ${PROMETHEUS_ENABLED:true}
+  health:
+    db:
+      enabled: true
+    diskspace:
+      enabled: true
+      threshold: ${DISK_SPACE_THRESHOLD:1MB}
+
+# Development Logging Configuration
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.mystudypartner.rag: ${LOG_LEVEL_APP:DEBUG}
+    org.springframework.security: ${LOG_LEVEL_SECURITY:DEBUG}
+    org.springframework.web: ${LOG_LEVEL_WEB:DEBUG}
+    org.springframework.data: ${LOG_LEVEL_DATA:DEBUG}
+    org.hibernate.SQL: ${LOG_LEVEL_HIBERNATE_SQL:DEBUG}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_HIBERNATE_PARAMS:TRACE}
+    org.apache.tika: ${LOG_LEVEL_TIKA:DEBUG}
+    org.apache.lucene: ${LOG_LEVEL_LUCENE:DEBUG}
+    org.flywaydb: ${LOG_LEVEL_FLYWAY:DEBUG}
+  pattern:
+    console: ${LOG_PATTERN_CONSOLE:"%clr(%d{yyyy-MM-dd HH:mm:ss}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"}
+    file: ${LOG_PATTERN_FILE:"%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"}
+  file:
+    name: ${LOG_FILE_NAME:logs/rag-application-dev.log}
+    max-size: ${LOG_FILE_MAX_SIZE:50MB}
+    max-history: ${LOG_FILE_MAX_HISTORY:7}
+
+# Development Application-specific Configuration
+app:
+  # Development File Processing Configuration
+  file:
+    upload:
+      directory: ${FILE_UPLOAD_DIRECTORY:uploads/dev}
+      allowed-extensions: ${FILE_ALLOWED_EXTENSIONS:pdf,doc,docx,txt,rtf}
+      max-file-count: ${FILE_MAX_COUNT:5}
+      cleanup:
+        enabled: ${FILE_CLEANUP_ENABLED:true}
+        interval: ${FILE_CLEANUP_INTERVAL:1800000} # 30 minutes
+        max-age: ${FILE_CLEANUP_MAX_AGE:3600000} # 1 hour
+  
+  # Development Document Processing Configuration
+  document:
+    processing:
+      max-content-length: ${DOC_MAX_CONTENT_LENGTH:5242880} # 5MB
+      chunk-size: ${DOC_CHUNK_SIZE:500}
+      overlap-size: ${DOC_OVERLAP_SIZE:100}
+      supported-languages: ${DOC_SUPPORTED_LANGUAGES:en,es,fr,de}
+  
+  # Development Search Configuration
+  search:
+    lucene:
+      index-directory: ${LUCENE_INDEX_DIRECTORY:models/lucene-index-dev}
+      max-results: ${SEARCH_MAX_RESULTS:50}
+      similarity-threshold: ${SEARCH_SIMILARITY_THRESHOLD:0.5}
+  
+  # Development Security Configuration
+  security:
+    jwt:
+      secret: ${JWT_SECRET:dev-secret-key-for-development-only}
+      expiration: ${JWT_EXPIRATION:3600000} # 1 hour
+      refresh-expiration: ${JWT_REFRESH_EXPIRATION:86400000} # 24 hours
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080,http://localhost:4200}
+      allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+      allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+      allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+  
+  # Development API Configuration
+  api:
+    version: ${API_VERSION:v1}
+    base-path: ${API_BASE_PATH:/api/v1}
+    rate-limit:
+      enabled: ${RATE_LIMIT_ENABLED:false}
+      requests-per-minute: ${RATE_LIMIT_REQUESTS_PER_MINUTE:1000}
+  
+  # Development Monitoring Configuration
+  monitoring:
+    enabled: ${MONITORING_ENABLED:true}
+    metrics:
+      enabled: ${METRICS_ENABLED:true}
+    tracing:
+      enabled: ${TRACING_ENABLED:true}
+
+# Development OpenAPI/Swagger Configuration
+springdoc:
+  api-docs:
+    path: ${OPENAPI_DOCS_PATH:/api-docs}
+  swagger-ui:
+    path: ${SWAGGER_UI_PATH:/swagger-ui.html}
+    enabled: ${SWAGGER_UI_ENABLED:true}
+    operations-sorter: ${SWAGGER_UI_OPERATIONS_SORTER:method}
+    tags-sorter: ${SWAGGER_UI_TAGS_SORTER:alpha}
+  info:
+    title: RAG Application API (Development)
+    description: Enterprise Retrieval-Augmented Generation Application API - Development Environment
+    version: ${APP_VERSION:1.0.0-dev}
+    contact:
+      name: MyStudyPartner Development Team
+      email: ${CONTACT_EMAIL:dev@mystudypartner.com}
+
+

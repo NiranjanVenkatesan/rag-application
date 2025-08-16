@@ -1,0 +1,200 @@
+spring:
+  application:
+    name: rag-application
+  
+  # Database Configuration - Simplified
+  datasource:
+    url: jdbc:postgresql://postgres:5432/ragdb
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+  
+  # JPA/Hibernate Configuration - Simplified
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show_sql: false
+  
+  # Flyway Database Migration - Disabled for testing
+  flyway:
+    enabled: false
+    baseline-on-migrate: false
+    validate-on-migrate: false
+  
+  # File Upload Configuration
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: ${MAX_FILE_SIZE:100MB}
+      max-request-size: ${MAX_REQUEST_SIZE:100MB}
+      file-size-threshold: ${FILE_SIZE_THRESHOLD:2KB}
+      location: ${TEMP_UPLOAD_LOCATION:/tmp}
+  
+  # JSON Serialization Configuration
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+      fail-on-empty-beans: false
+      indent-output: ${JACKSON_INDENT_OUTPUT:false}
+    deserialization:
+      fail-on-unknown-properties: false
+    time-zone: ${JACKSON_TIMEZONE:UTC}
+    date-format: ${JACKSON_DATE_FORMAT:yyyy-MM-dd'T'HH:mm:ss.SSSZ}
+  
+  # Security Configuration
+  security:
+    user:
+      name: ${SECURITY_USER_NAME:admin}
+      password: ${SECURITY_USER_PASSWORD:admin123}
+
+# Application-specific Configuration
+app:
+  # File Upload Configuration
+  file:
+    upload:
+      max-size: ${APP_FILE_MAX_SIZE:100MB}
+      max-request-size: ${APP_FILE_MAX_REQUEST_SIZE:100MB}
+      directory: ${APP_FILE_UPLOAD_DIR:uploads}
+      temp-directory: ${APP_FILE_TEMP_DIR:temp}
+      allowed-extensions: ${FILE_ALLOWED_EXTENSIONS:pdf,doc,docx,txt,rtf}
+      max-file-count: ${FILE_MAX_COUNT:10}
+      cleanup:
+        enabled: ${FILE_CLEANUP_ENABLED:true}
+        interval: ${FILE_CLEANUP_INTERVAL:3600000} # 1 hour
+        max-age: ${FILE_CLEANUP_MAX_AGE:86400000} # 24 hours
+  
+  # Document Processing Configuration
+  document:
+    processing:
+      max-content-length: ${DOC_MAX_CONTENT_LENGTH:10485760} # 10MB
+      chunk-size: ${DOC_CHUNK_SIZE:1000}
+      overlap-size: ${DOC_OVERLAP_SIZE:200}
+      supported-languages: ${DOC_SUPPORTED_LANGUAGES:en,es,fr,de}
+  
+  # Search Configuration
+  search:
+    lucene:
+      index-directory: ${LUCENE_INDEX_DIRECTORY:models/lucene-index}
+      max-results: ${SEARCH_MAX_RESULTS:100}
+      similarity-threshold: ${SEARCH_SIMILARITY_THRESHOLD:0.7}
+  
+  # Tika Configuration
+  tika:
+    max-text-length: ${APP_TIKA_MAX_TEXT_LENGTH:100000}
+    enable-pdf-parsing: ${APP_TIKA_ENABLE_PDF_PARSING:true}
+    enable-ocr: ${APP_TIKA_ENABLE_OCR:false}
+  
+  # Security Configuration
+  security:
+    enabled: ${APP_SECURITY_ENABLED:true}
+    jwt:
+      secret: ${JWT_SECRET:your-256-bit-secret}
+      expiration: ${JWT_EXPIRATION:86400000} # 24 hours
+      refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7 days
+    cors:
+      allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:*}
+      allowed-methods: ${APP_CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+      allowed-headers: ${APP_CORS_ALLOWED_HEADERS:*}
+      max-age: ${APP_CORS_MAX_AGE:3600}
+      allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+  
+  # API Configuration
+  api:
+    version: ${API_VERSION:v1}
+    base-path: ${API_BASE_PATH:/api/v1}
+    rate-limit:
+      enabled: ${RATE_LIMIT_ENABLED:true}
+      requests-per-minute: ${RATE_LIMIT_REQUESTS_PER_MINUTE:100}
+  
+  # Monitoring Configuration
+  monitoring:
+    enabled: ${MONITORING_ENABLED:true}
+    metrics:
+      enabled: ${METRICS_ENABLED:true}
+    tracing:
+      enabled: ${TRACING_ENABLED:false}
+  
+  # Cache Configuration
+  cache:
+    type: ${CACHE_TYPE:simple}
+    cache-names:
+      - document-cache
+      - search-cache
+      - user-cache
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: ${SERVER_CONTEXT_PATH:/api}
+  compression:
+    enabled: ${SERVER_COMPRESSION_ENABLED:true}
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+  error:
+    include-message: ${SERVER_ERROR_INCLUDE_MESSAGE:always}
+    include-binding-errors: ${SERVER_ERROR_INCLUDE_BINDING_ERRORS:always}
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ${ACTUATOR_ENDPOINTS:health,info,metrics,prometheus}
+      base-path: ${ACTUATOR_BASE_PATH:/actuator}
+  endpoint:
+    health:
+      show-details: ${ACTUATOR_HEALTH_SHOW_DETAILS:when-authorized}
+      show-components: ${ACTUATOR_HEALTH_SHOW_COMPONENTS:always}
+    info:
+      enabled: true
+    metrics:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: ${PROMETHEUS_ENABLED:true}
+  health:
+    db:
+      enabled: true
+    diskspace:
+      enabled: true
+      threshold: ${DISK_SPACE_THRESHOLD:10MB}
+
+# Logging Configuration
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.mystudypartner.rag: ${LOG_LEVEL_APP:INFO}
+    org.springframework.security: ${LOG_LEVEL_SECURITY:WARN}
+    org.hibernate.SQL: ${LOG_LEVEL_HIBERNATE_SQL:WARN}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_HIBERNATE_PARAMS:WARN}
+    org.apache.tika: ${LOG_LEVEL_TIKA:INFO}
+    org.apache.lucene: ${LOG_LEVEL_LUCENE:INFO}
+  pattern:
+    console: ${LOG_PATTERN_CONSOLE:"%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"}
+    file: ${LOG_PATTERN_FILE:"%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"}
+  file:
+    name: ${LOG_FILE_NAME:logs/rag-application.log}
+    max-size: ${LOG_FILE_MAX_SIZE:100MB}
+    max-history: ${LOG_FILE_MAX_HISTORY:30}
+
+
+
+# OpenAPI/Swagger Configuration
+springdoc:
+  api-docs:
+    path: ${OPENAPI_DOCS_PATH:/api-docs}
+  swagger-ui:
+    path: ${SWAGGER_UI_PATH:/swagger-ui.html}
+    enabled: ${SWAGGER_UI_ENABLED:true}
+  info:
+    title: RAG Application API
+    description: Enterprise Retrieval-Augmented Generation Application API
+    version: ${APP_VERSION:1.0.0}
+    contact:
+      name: MyStudyPartner Development Team
+      email: ${CONTACT_EMAIL:dev@mystudypartner.com}

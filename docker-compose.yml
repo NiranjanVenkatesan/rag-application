@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  rag-app:
+    build: 
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: rag-app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/ragdb
+      - DATABASE_USERNAME=raguser
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-ragpass123}
+      - WEAVIATE_URL=http://weaviate:8080
+      - UPLOAD_DIRECTORY=/app/uploads
+    volumes:
+      - app_uploads:/app/uploads
+      - app_models:/app/models
+    depends_on:
+      postgres:
+        condition: service_healthy
+      weaviate:
+        condition: service_healthy
+    networks:
+      - rag-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: rag-postgres
+    environment:
+      POSTGRES_DB: ragdb
+      POSTGRES_USER: raguser
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-ragpass123}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - rag-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U raguser -d ragdb"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  weaviate:
+    image: semitechnologies/weaviate:1.22.4
+    container_name: rag-weaviate
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      DEFAULT_VECTORIZER_MODULE: 'none'
+      ENABLE_MODULES: 'text2vec-transformers'
+      CLUSTER_HOSTNAME: 'node1'
+    ports:
+      - "8081:8080"
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    networks:
+      - rag-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/meta"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: rag-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - rag-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:latest
+    container_name: rag-adminer
+    ports:
+      - "8082:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    networks:
+      - rag-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  weaviate_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_uploads:
+    driver: local
+  app_models:
+    driver: local
+
+networks:
+  rag-network:
+    driver: bridge
